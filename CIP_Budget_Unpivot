@@ -1,0 +1,14 @@
+import pandas as pd
+import api
+
+df = api.get("nuua-b48h")
+
+print(df)
+
+df_melt = df.melt(id_vars=['sort_order','dept_pri', 'progid', 'source', 'cpn', 'item_no', 'title',	'mof','notes', 'hwy_ok', 'island',	'legapprovalstatus', 'trn',
+],
+value_vars= ['gdfy20', 'gdfy21', 'gmfy20', 'gmfy21',],
+var_name="GDFY",
+value_name="Total")
+
+df_melt.to_csv('C:/Socrata/Data/Dev/melt_demo.csv', index=False)
