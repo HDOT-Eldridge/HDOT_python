@@ -1,8 +1,15 @@
+import os
+import sys
+
 import pandas as pd
-import api
+#import api
 
 #import the CIP Budget file off of the api
-df = api.get("nuua-b48h")
+#df = api.get("nuua-b48h")
+
+df= pd.read_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/CIP_Budget_File.csv')
+
+df.columns = map(str.lower, df.columns)
 
 print(df)
 
@@ -10,10 +17,42 @@ print(df)
 # This function is useful to massage a DataFrame into a format where one or more columns are identifier variables (id_vars), while all other columns, considered
 # measured variables (value_vars), are “unpivoted” to the row axis, leaving just two non-identifier columns, ‘variable’ and ‘value
 
-df_melt = df.melt(id_vars=['sort_order','dept_pri', 'progid', 'source', 'cpn', 'item_no', 'title',	'mof','notes', 'hwy_ok', 'island',	'legapprovalstatus', 'trn',
+df_meltgd = df.melt(id_vars=['sort_order','dept_pri', 'progid', 'source', 'cpn', 'item_no', 'title','mof','notes', 'hwy_ok', 'island','legapprovalstatus', 'trn',
+
 ],
 value_vars= ['gdfy20', 'gdfy21'],
 var_name="GDFY",
-value_name="Total")
+value_name="GDFY_Amt")
 
-df_melt.to_csv('C:/Socrata/Data/Dev/melt_demo.csv', index=False)
+df_meltgm = df.melt(id_vars=['sort_order'
+],
+value_vars= ['gmfy20', 'gmfy21'],
+var_name="GMFY",
+value_name="GMFY_Amt")
+
+df_melthb = df.melt(id_vars=['sort_order'
+],
+value_vars= ['hb1259fy20','hb1259fy21'],
+var_name="HBFY",
+value_name="HBFY_Amt")
+
+
+def fy_parser(row):
+    return "20"+ row[-2:]
+
+df_melthb["Bill_Year"]= df_melthb["HBFY"].apply(fy_parser)
+df_meltgd["Bill_Year"]= df_meltgd["GDFY"].apply(fy_parser)
+df_meltgm["Bill_Year"]= df_meltgm["GMFY"].apply(fy_parser)
+
+df_merge1 = df_meltgd.merge(df_meltgm,how= "left", on = ["sort_order","Bill_Year"])
+df_merge1.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_merge1.csv', index=False)
+
+
+df_merge2 = df_merge1.merge(df_melthb,how= "left", on = ["sort_order","Bill_Year"])
+df_merge2.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_merge2.csv', index=False)
+
+
+
+df_meltgd.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP.csv', index=False)
+df_meltgm.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step2.csv', index=False)
+df_melthb.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step3.csv', index=False)
