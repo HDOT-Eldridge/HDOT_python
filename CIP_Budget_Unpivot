@@ -7,16 +7,22 @@ import pandas as pd
 #import the CIP Budget file off of the api
 #df = api.get("nuua-b48h")
 
+#reads the .csv file from the directory
 df= pd.read_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/CIP_Budget_File.csv')
 
+#looks at the column headings and makes them lowercase
 df.columns = map(str.lower, df.columns)
 
+#outputs the data frame values to the screen
 print(df)
 
 # pandas.melt- Unpivot a DataFrame from wide to long format, optionally leaving identifiers set.
 # This function is useful to massage a DataFrame into a format where one or more columns are identifier variables (id_vars), while all other columns, considered
 # measured variables (value_vars), are “unpivoted” to the row axis, leaving just two non-identifier columns, ‘variable’ and ‘value
 
+#uses the melt function to flatten the data in the "gdfy##" columns and makes them into a "GDFY" (governer's draft fiscal year) and
+#GDFY_Amt" (governor's draft fiscal year amount) columns.  These columns will have the two "gdfy##" column data shown in one individual
+#based on the year.  This data frame will also have the supplemental columns to provide information for doing joins later on.
 df_meltgd = df.melt(id_vars=['sort_order','dept_pri', 'progid', 'source', 'cpn', 'item_no', 'title','mof','notes', 'hwy_ok', 'island','legapprovalstatus', 'trn',
 
 ],
@@ -24,35 +30,44 @@ value_vars= ['gdfy20', 'gdfy21'],
 var_name="GDFY",
 value_name="GDFY_Amt")
 
+#uses the melt function to condens the "gmfy##" columns and makes them into a "GMFY" (governer's message fiscal year) and
+#GMFY_Amt" (governor's message fiscal year amount) columns.  This data frame keeps the "sort_order" column as a key for doing a merge of
+#the data frames produced.
 df_meltgm = df.melt(id_vars=['sort_order'
 ],
 value_vars= ['gmfy20', 'gmfy21'],
 var_name="GMFY",
 value_name="GMFY_Amt")
 
+
+#uses the melt function to condens the "hb####fy##" columns and makes them into a "HBFY" (House Bill fiscal year) and
+#HBFY_Amt" (House Bill fiscal year amount) columns.  This data frame keeps the "sort_order" column as a key for doing a merge of
+#the data frames produced.
 df_melthb = df.melt(id_vars=['sort_order'
 ],
 value_vars= ['hb1259fy20','hb1259fy21'],
 var_name="HBFY",
 value_name="HBFY_Amt")
 
-
+#function that looks at a collumn header, parses out the last to digits and adds "20" infront of those 2 digits
 def fy_parser(row):
     return "20"+ row[-2:]
 
+#creates a bill year column for the 3 data frames (df_melthb, df_meltgd and df_meltgm) so they can be joined with that column in each
+#data frame
 df_melthb["Bill_Year"]= df_melthb["HBFY"].apply(fy_parser)
 df_meltgd["Bill_Year"]= df_meltgd["GDFY"].apply(fy_parser)
 df_meltgm["Bill_Year"]= df_meltgm["GMFY"].apply(fy_parser)
 
+#merges the df_meltgd with df_meltgm based on "sort_order" and "Bill_Year".  Then it outputs it to a .csv file
 df_merge1 = df_meltgd.merge(df_meltgm,how= "left", on = ["sort_order","Bill_Year"])
 df_merge1.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_merge1.csv', index=False)
 
-
+#merges the df_merge1 with df_melthb based on "sort_order" and "Bill_Year".  Then it outputs it to a .csv file
 df_merge2 = df_merge1.merge(df_melthb,how= "left", on = ["sort_order","Bill_Year"])
 df_merge2.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_merge2.csv', index=False)
 
-
-
+#Outputs the df_meltgd, df_meltgm and the df_melthb to a .csv file
 df_meltgd.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP.csv', index=False)
 df_meltgm.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step2.csv', index=False)
 df_melthb.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step3.csv', index=False)
