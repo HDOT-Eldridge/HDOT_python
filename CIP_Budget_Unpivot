@@ -67,6 +67,11 @@ df_merge1.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_mer
 df_merge2 = df_merge1.merge(df_melthb,how= "left", on = ["sort_order","Bill_Year"])
 df_merge2.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_merge2.csv', index=False)
 
+#copies the second merged data frame and takes out the GDFY and GMFY columns.
+df_remove = df_merge2.drop(['GDFY', 'GMFY'], axis=1)
+print("\nData frame after deleting the columns 'GDFY' and 'GMFY':\n")
+df_remove.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_removed.csv', index=False)
+
 #Outputs the df_meltgd, df_meltgm and the df_melthb to a .csv file
 df_meltgd.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP.csv', index=False)
 df_meltgm.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step2.csv', index=False)
