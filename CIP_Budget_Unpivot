@@ -13,6 +13,21 @@ df= pd.read_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/CIP_Budget_File.cs
 #looks at the column headings and makes them lowercase
 df.columns = map(str.lower, df.columns)
 
+#looks at column headings, finds spaces and replaces them with underscores ("_")
+df.columns = df.columns.str.replace(" ", "_")
+
+#looks at column headings, finds symbols in the string and removes them
+df.columns = df.columns.str.replace(r'\W',"")
+
+
+#looks at a value and parse out a digit from it
+def dept_pri_cleanse(row):
+    num = ''.join(char for char in row if char.isdigit())
+    return num
+
+#applys the dept_pri_cleanse function to the dept_pri column
+df['dept_pri'] = df['dept_pri'].astype(str).apply(dept_pri_cleanse)
+
 #outputs the data frame values to the screen
 print(df)
 
@@ -70,9 +85,11 @@ df_merge2.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_mer
 #copies the second merged data frame and takes out the GDFY and GMFY columns.
 df_remove = df_merge2.drop(['GDFY', 'GMFY'], axis=1)
 print("\nData frame after deleting the columns 'GDFY' and 'GMFY':\n")
+print(df_remove)
 df_remove.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_removed.csv', index=False)
 
 #Outputs the df_meltgd, df_meltgm and the df_melthb to a .csv file
 df_meltgd.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP.csv', index=False)
 df_meltgm.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step2.csv', index=False)
 df_melthb.to_csv('C:/Users/eshay/OneDrive/Documents/CIP Budget/Unpivoted_CIP_step3.csv', index=False)
+
